@@ -13,11 +13,11 @@ uint8_t SPIReadWrite(uint8_t data){
 }
 
 void wizchip_select(void){
-	HAL_GPIO_WritePin(GPIOA, GPIO_Pin_1, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
 }
 
 void wizchip_deselect(void){
-	HAL_GPIO_WritePin(GPIOA, GPIO_Pin_1, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
 }
 
 uint8_t wizchip_read(void){
@@ -43,7 +43,7 @@ void wizchip_writeburst(uint8_t* pBuf, uint16_t len){
 	}
 }
 
-void w5500IOInit(){
+void W5500IOInit(){
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 
@@ -55,8 +55,25 @@ void w5500IOInit(){
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
 
-void w5500Init(){
+void W5500Init(){
 	uint8_t tmp;
 	uint8_t memsize[2][8]={{2,2,2,2,2,2,2,2},{2,2,2,2,2,2,2,2}};
+
+	W5500IOInit();
+
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);//Chip Select high by default
+
+	tmp=0xff;
+	while(tmp--);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);//Select chip by putting chip select low
+
+	reg_wizchip_cs_cbfunc(wizchip_select, wizchip_deselect);
+	reg_wizchip_spi_cbfunc(wizchip_read, wizchip_write);
+	reg_wizchip_spiburst_cbfunc(wizchip_readburst, wizchip_writeburst);
+
+	if(ctlwizchip(CW_INIT_WIZCHIP, (void*)memsize)==1){
+		printf("wizchip Initialization failed\r\n");
+		while(1);
+	}
 
 }
