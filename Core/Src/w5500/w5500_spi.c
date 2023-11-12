@@ -13,11 +13,11 @@ uint8_t SPIReadWrite(uint8_t data){
 }
 
 void wizchip_select(void){
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
 }
 
 void wizchip_deselect(void){
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);
 }
 
 uint8_t wizchip_read(void){
@@ -71,9 +71,10 @@ void W5500Init(){
 	reg_wizchip_spi_cbfunc(wizchip_read, wizchip_write);
 	reg_wizchip_spiburst_cbfunc(wizchip_readburst, wizchip_writeburst);
 
-	if(ctlwizchip(CW_INIT_WIZCHIP, (void*)memsize)==1){
+	if(ctlwizchip(CW_INIT_WIZCHIP, (void*)memsize)==-1){
 		printf("wizchip Initialization failed\r\n");
 		while(1);
 	}
+	printf("wizchip initialization success\r\n");
 
 }
