@@ -32,7 +32,7 @@ void wizchip_write(uint8_t wb){
 
 void wizchip_readburst(uint8_t* pBuf, uint16_t len){
 	for(int i=0; i<len;i++){
-		pBuf=SPIReadWrite(0x00);
+		*pBuf=SPIReadWrite(0x00);
 		pBuf++;
 	}
 }
@@ -47,7 +47,7 @@ void W5500IOInit(){
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 
-	GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+	GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1; //pin0 is clock reset and pin1 is chip select
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -61,11 +61,13 @@ void W5500Init(){
 
 	W5500IOInit();
 
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);//Chip Select high by default
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);//Chip Select high by default
 
+	//send pulse on reset pin
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
 	tmp=0xff;
-	while(tmp--);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);//Select chip by putting chip select low
+	while(tmp--);//small delay
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
 
 	reg_wizchip_cs_cbfunc(wizchip_select, wizchip_deselect);
 	reg_wizchip_spi_cbfunc(wizchip_read, wizchip_write);
