@@ -39,13 +39,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_macro  000181bd  00000000  00000000  0002995f  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line   00009139  00000000  00000000  00041b1c  2**0
+ 18 .debug_line   00009136  00000000  00000000  00041b1c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    0008681d  00000000  00000000  0004ac55  2**0
+ 19 .debug_str    0008681b  00000000  00000000  0004ac52  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .debug_frame  0000268c  00000000  00000000  000d1474  2**2
+ 20 .debug_frame  0000268c  00000000  00000000  000d1470  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 00000066  00000000  00000000  000d3b00  2**0
+ 21 .debug_line_str 00000064  00000000  00000000  000d3afc  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -1554,10 +1554,10 @@ void     WIZCHIP_WRITE_BUF(uint32_t AddrSel, uint8_t* pBuf, uint16_t len)
  80008d0:	2000001c 	.word	0x2000001c
 
 080008d4 <wizchip_select>:
-//	}
-//
-//	return(*(__IO uint8_t*)&hspi1.Instance->DR);
-//}
+#include "wizchip_conf.h"
+#include "stdio.h"
+
+extern SPI_HandleTypeDef hspi1;
 
 void wizchip_select(void){
  80008d4:	b580      	push	{r7, lr}
@@ -1709,10 +1709,6 @@ void wizchip_write_burst(uint8_t* pBuf, uint16_t len) {
  80009ba:	bd80      	pop	{r7, pc}
 
 080009bc <W5500Init>:
-//	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-//
-//	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-//}
 
 void W5500Init(){
  80009bc:	b590      	push	{r4, r7, lr}
@@ -1724,8 +1720,6 @@ void W5500Init(){
  80009c4:	1d3c      	adds	r4, r7, #4
  80009c6:	cb0f      	ldmia	r3, {r0, r1, r2, r3}
  80009c8:	e884 000f 	stmia.w	r4, {r0, r1, r2, r3}
-
-//	W5500IOInit();
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);//Chip Select high by default
  80009cc:	2201      	movs	r2, #1
