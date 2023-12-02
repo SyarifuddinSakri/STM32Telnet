@@ -23,6 +23,13 @@ wiz_NetInfo gWIZNETINFO2 = {
 netmode_type gNetMode = {
 		NM_FORCEARP | NM_WAKEONLAN | NM_PPPOE | 128
 };
+void closeSocket() {
+    // Close the socket
+    close(socketNumber);
+
+    // Wait for a short period to allow proper cleanup
+    HAL_Delay(100);
+}
 
 int main(void)
 {
@@ -68,7 +75,7 @@ int main(void)
           // Check for disconnection
           if (getSn_SR(socketNumber) == SOCK_CLOSED) {
               // Close the socket
-              close(socketNumber);
+              closeSocket();
               break;  // Exit the inner loop to reopen the socket
           }
       }
