@@ -5,6 +5,8 @@
 #include "socket.h"
 
 SPI_HandleTypeDef hspi1;
+uint8_t socketNumber = 0;
+uint16_t port = 23;
 
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -12,7 +14,7 @@ static void MX_SPI1_Init(void);
 
 wiz_NetInfo gWIZNETINFO2 = {
 		.mac = {0x00, 0x08, 0xdc, 0xab, 0xcd, 0xed},
-		.ip = {192,168,100,113},
+		.ip = {192,168,100,132},
 		.sn = {255,255,255,0},
 		.gw = {192,168,1,1},
 		.dhcp = NETINFO_STATIC
@@ -33,12 +35,43 @@ int main(void)
   W5500Init();
 
   ctlnetwork(CN_SET_NETINFO, (void*) &gWIZNETINFO2);
-  ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
+//  ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
 
+  // Open a TCP server socket
+  socket(socketNumber, Sn_MR_TCP, port, 0);
 
-  while (1)
-  {
+  // Listen for incoming connections
+  listen(socketNumber);
+  //data will be placed here
+  uint8_t buffer[1024];
+  while (1) {
+      // Open a TCP server socket
+      socket(socketNumber, Sn_MR_TCP, port, 0);
 
+      // Listen for incoming connections
+      listen(socketNumber);
+
+      while (1) {
+          // Check if a client is trying to connect
+          if (getSn_SR(socketNumber) == SOCK_ESTABLISHED) {
+              int receivedSize = 0;
+
+              // Receive data from the client
+              receivedSize = recv(socketNumber, buffer, sizeof(buffer));
+
+              // Process the received data (you can implement your own logic here)
+
+              // Send a response back to the client
+              send(socketNumber, buffer, receivedSize);
+          }
+
+          // Check for disconnection
+          if (getSn_SR(socketNumber) == SOCK_CLOSED) {
+              // Close the socket
+              close(socketNumber);
+              break;  // Exit the inner loop to reopen the socket
+          }
+      }
   }
   /* USER CODE END 3 */
 }

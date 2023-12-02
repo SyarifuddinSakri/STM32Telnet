@@ -54,9 +54,9 @@ void W5500Init(){
 	reg_wizchip_spiburst_cbfunc(wizchip_read_burst, wizchip_write_burst);
 
 	if(ctlwizchip(CW_INIT_WIZCHIP, (void*)memsize)==-1){
-		printf("wizchip Initialization failed\r\n");
+//		printf("wizchip Initialization failed\r\n");
 		while(1);
 	}
-	printf("wizchip initialization success\r\n");
+//	printf("wizchip initialization success\r\n");
 
 }
