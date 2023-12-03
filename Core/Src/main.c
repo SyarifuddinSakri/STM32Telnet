@@ -3,10 +3,11 @@
 #include "w5500_spi.h"
 #include "wizchip_conf.h"
 #include "socket.h"
+#include <string.h>
 
 SPI_HandleTypeDef hspi1;
-uint8_t socketNumber = 0;
-uint16_t port = 23;
+uint8_t firstSocket = 0;
+uint16_t port = 80;
 
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -23,9 +24,9 @@ wiz_NetInfo gWIZNETINFO2 = {
 netmode_type gNetMode = {
 		NM_FORCEARP | NM_WAKEONLAN | NM_PPPOE | 128
 };
-void closeSocket() {
+void closeFirstSocket() {
     // Close the socket
-    close(socketNumber);
+    close(firstSocket);
 
     // Wait for a short period to allow proper cleanup
     HAL_Delay(100);
@@ -45,37 +46,59 @@ int main(void)
 //  ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
 
   // Open a TCP server socket
-  socket(socketNumber, Sn_MR_TCP, port, 0);
+  socket(firstSocket, Sn_MR_TCP, port, 0);
 
   // Listen for incoming connections
-  listen(socketNumber);
+  listen(firstSocket);
   //data will be placed here
   uint8_t buffer[1024];
   while (1) {
       // Open a TCP server socket
-      socket(socketNumber, Sn_MR_TCP, port, 0);
+      socket(firstSocket, Sn_MR_TCP, port, 0);
 
       // Listen for incoming connections
-      listen(socketNumber);
+      listen(firstSocket);
 
       while (1) {
           // Check if a client is trying to connect
-          if (getSn_SR(socketNumber) == SOCK_ESTABLISHED) {
+          if (getSn_SR(firstSocket) == SOCK_ESTABLISHED) {
               int receivedSize = 0;
 
-              // Receive data from the client
-              receivedSize = recv(socketNumber, buffer, sizeof(buffer));
+              // Receive data from the client - if this is not included
+              receivedSize = recv(firstSocket, buffer, sizeof(buffer));
 
               // Process the received data (you can implement your own logic here)
 
               // Send a response back to the client
-              send(socketNumber, buffer, receivedSize);
+              const char* httpResponse = "<!DOCTYPE html>\n"
+            		  "<html lang=\"en\">\n"
+            		  "<head>\n"
+            		  "    <meta charset=\"UTF-8\">\n"
+            		  "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+            		  "    <title>SY server</title>\n"
+            		  "    <style>\n"
+            		  "        #buntut {\n"
+            		  "            color: rgb(162, 162, 202);\n"
+            		  "            text-align: center;\n"
+            		  "            font-family: Arial, Helvetica, sans-serif;\n"
+            		  "        }\n"
+            		  "    </style>\n"
+            		  "</head>\n"
+            		  "<h1 id=\"buntut\">\n"
+            		  "    This is test page for my w5500 webServer\n"
+            		  "</h1>\n"
+            		  "<body style=\"background-color: #0a324d;\">\n"
+            		  "    \n"
+            		  "</body>\n"
+            		  "</html>";
+              send(firstSocket, (void*)httpResponse, strlen(httpResponse));
+              close(firstSocket);
           }
 
           // Check for disconnection
-          if (getSn_SR(socketNumber) == SOCK_CLOSED) {
+          if (getSn_SR(firstSocket) == SOCK_CLOSED) {
               // Close the socket
-              closeSocket();
+              closeFirstSocket();
               break;  // Exit the inner loop to reopen the socket
           }
       }
