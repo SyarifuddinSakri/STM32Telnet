@@ -4,14 +4,22 @@
 #include "wizchip_conf.h"
 #include "socket.h"
 #include <string.h>
+#include "TelnetSession.h"
+#include "cmsis_os.h"
 
 SPI_HandleTypeDef hspi1;
-uint8_t firstSocket = 0;
-uint16_t port = 80;
+osThreadId TelnetServerHandle;
+osThreadId ModbusTaskHandle;
+/* USER CODE BEGIN PV */
 
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
+void StartDefaultTask(void const * argument);
+void StartTask02(void const * argument);
 
 wiz_NetInfo gWIZNETINFO2 = {
 		.mac = {0x00, 0x08, 0xdc, 0xab, 0xcd, 0xed},
@@ -20,88 +28,77 @@ wiz_NetInfo gWIZNETINFO2 = {
 		.gw = {192,168,1,1},
 		.dhcp = NETINFO_STATIC
 };
-
 netmode_type gNetMode = {
 		NM_FORCEARP | NM_WAKEONLAN | NM_PPPOE | 128
 };
-void closeFirstSocket() {
-    // Close the socket
-    close(firstSocket);
+/* USER CODE BEGIN PFP */
 
-    // Wait for a short period to allow proper cleanup
-    HAL_Delay(100);
-}
+/* USER CODE END PFP */
 
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
+
   HAL_Init();
 
   SystemClock_Config();
 
   MX_GPIO_Init();
   MX_SPI1_Init();
+  /* USER CODE BEGIN 2 */
+
+  /* USER CODE END 2 */
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* definition and creation of TelnetServer */
+  osThreadDef(TelnetServer, StartDefaultTask, osPriorityLow, 0, 128);
+  TelnetServerHandle = osThreadCreate(osThread(TelnetServer), NULL);
+
+  /* definition and creation of ModbusTask */
+  osThreadDef(ModbusTask, StartTask02, osPriorityNormal, 0, 128);
+  ModbusTaskHandle = osThreadCreate(osThread(ModbusTask), NULL);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* Start scheduler */
   W5500Init();
-
   ctlnetwork(CN_SET_NETINFO, (void*) &gWIZNETINFO2);
+  osKernelStart();
 //  ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
+  /* We should never get here as control is now taken by the scheduler */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
 
-  // Open a TCP server socket
-  socket(firstSocket, Sn_MR_TCP, port, 0);
-
-  // Listen for incoming connections
-  listen(firstSocket);
-  //data will be placed here
-  uint8_t buffer[1024];
-  while (1) {
-      // Open a TCP server socket
-      socket(firstSocket, Sn_MR_TCP, port, 0);
-
-      // Listen for incoming connections
-      listen(firstSocket);
-
-      while (1) {
-          // Check if a client is trying to connect
-          if (getSn_SR(firstSocket) == SOCK_ESTABLISHED) {
-              int receivedSize = 0;
-
-              // Receive data from the client - if this is not included
-              receivedSize = recv(firstSocket, buffer, sizeof(buffer));
-
-              // Process the received data (you can implement your own logic here)
-
-              // Send a response back to the client
-              const char* httpResponse = "<!DOCTYPE html>\n"
-            		  "<html lang=\"en\">\n"
-            		  "<head>\n"
-            		  "    <meta charset=\"UTF-8\">\n"
-            		  "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-            		  "    <title>SY server</title>\n"
-            		  "    <style>\n"
-            		  "        #buntut {\n"
-            		  "            color: rgb(162, 162, 202);\n"
-            		  "            text-align: center;\n"
-            		  "            font-family: Arial, Helvetica, sans-serif;\n"
-            		  "        }\n"
-            		  "    </style>\n"
-            		  "</head>\n"
-            		  "<h1 id=\"buntut\">\n"
-            		  "    This is test page for my w5500 webServer\n"
-            		  "</h1>\n"
-            		  "<body style=\"background-color: #0a324d;\">\n"
-            		  "    \n"
-            		  "</body>\n"
-            		  "</html>";
-              send(firstSocket, (void*)httpResponse, strlen(httpResponse));
-              close(firstSocket);
-          }
-
-          // Check for disconnection
-          if (getSn_SR(firstSocket) == SOCK_CLOSED) {
-              // Close the socket
-              closeFirstSocket();
-              break;  // Exit the inner loop to reopen the socket
-          }
-      }
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -234,6 +231,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PB11 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
@@ -241,6 +244,45 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the TelnetServer thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void const * argument)
+{
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+		startTelnet();
+	    osDelay(1);
+
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartTask02 */
+/**
+* @brief Function implementing the ModbusTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTask02 */
+void StartTask02(void const * argument)
+{
+  /* USER CODE BEGIN StartTask02 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);
+	  osDelay(500);  // Adjust the delay as needed for the desired blink rate
+  }
+  /* USER CODE END StartTask02 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
