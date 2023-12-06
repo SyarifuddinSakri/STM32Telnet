@@ -6,6 +6,8 @@
 #include <string.h>
 #include "TelnetSession.h"
 #include "cmsis_os.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 SPI_HandleTypeDef hspi1;
 osThreadId TelnetServerHandle;
@@ -31,19 +33,20 @@ wiz_NetInfo gWIZNETINFO2 = {
 netmode_type gNetMode = {
 		NM_FORCEARP | NM_WAKEONLAN | NM_PPPOE | 128
 };
-/* USER CODE BEGIN PFP */
-
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
+void TaskFunction(void *pvParameters) {
+    for (;;) {
+        // Task code here
+    	startTelnet();
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Delay for 1000 milliseconds
+    }
+}
+void Task2Function(void *pvParameters) {
+    for (;;) {
+        // Task 2 code here
+  	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);
+        vTaskDelay(pdMS_TO_TICKS(500));  // Delay for 500 milliseconds
+    }
+}
 int main(void)
 {
 
@@ -53,44 +56,15 @@ int main(void)
 
   MX_GPIO_Init();
   MX_SPI1_Init();
-  /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
-
-  /* Create the thread(s) */
-  /* definition and creation of TelnetServer */
-  osThreadDef(TelnetServer, StartDefaultTask, osPriorityLow, 0, 128);
-  TelnetServerHandle = osThreadCreate(osThread(TelnetServer), NULL);
-
-  /* definition and creation of ModbusTask */
-  osThreadDef(ModbusTask, StartTask02, osPriorityNormal, 0, 128);
-  ModbusTaskHandle = osThreadCreate(osThread(ModbusTask), NULL);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
   W5500Init();
   ctlnetwork(CN_SET_NETINFO, (void*) &gWIZNETINFO2);
-  osKernelStart();
 //  ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
+  xTaskCreate(TaskFunction, "Task1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
+  xTaskCreate(Task2Function, "Task2", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
+
+  vTaskStartScheduler();
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -202,7 +176,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1, GPIO_PIN_RESET);
@@ -258,7 +232,6 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-		startTelnet();
 	    osDelay(1);
 
   }
@@ -278,7 +251,6 @@ void StartTask02(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);
 	  osDelay(500);  // Adjust the delay as needed for the desired blink rate
   }
   /* USER CODE END StartTask02 */
