@@ -5,13 +5,10 @@
 #include "socket.h"
 #include <string.h>
 #include "TelnetSession.h"
-#include "cmsis_os.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
 SPI_HandleTypeDef hspi1;
-osThreadId TelnetServerHandle;
-osThreadId ModbusTaskHandle;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -37,13 +34,13 @@ void TaskFunction(void *pvParameters) {
     for (;;) {
         // Task code here
     	startTelnet();
-        vTaskDelay(pdMS_TO_TICKS(1000));  // Delay for 1000 milliseconds
+        vTaskDelay(pdMS_TO_TICKS(1));  // Delay for 1000 milliseconds
     }
 }
 void Task2Function(void *pvParameters) {
     for (;;) {
         // Task 2 code here
-  	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);
+    	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);
         vTaskDelay(pdMS_TO_TICKS(500));  // Delay for 500 milliseconds
     }
 }
@@ -59,8 +56,11 @@ int main(void)
 
   /* Start scheduler */
   W5500Init();
+  //set network address and network mode
   ctlnetwork(CN_SET_NETINFO, (void*) &gWIZNETINFO2);
-//  ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
+  ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
+
+  //put the task in queue
   xTaskCreate(TaskFunction, "Task1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
   xTaskCreate(Task2Function, "Task2", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
 
@@ -70,9 +70,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -226,17 +223,17 @@ static void MX_GPIO_Init(void)
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
-{
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-	    osDelay(1);
-
-  }
+//void StartDefaultTask(void const * argument)
+//{
+//  /* USER CODE BEGIN 5 */
+//  /* Infinite loop */
+//  for(;;)
+//  {
+//	    osDelay(1);
+//
+//  }
   /* USER CODE END 5 */
-}
+//}
 
 /* USER CODE BEGIN Header_StartTask02 */
 /**
@@ -245,16 +242,16 @@ void StartDefaultTask(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_StartTask02 */
-void StartTask02(void const * argument)
-{
-  /* USER CODE BEGIN StartTask02 */
-  /* Infinite loop */
-  for(;;)
-  {
-	  osDelay(500);  // Adjust the delay as needed for the desired blink rate
-  }
-  /* USER CODE END StartTask02 */
-}
+//void StartTask02(void const * argument)
+//{
+//  /* USER CODE BEGIN StartTask02 */
+//  /* Infinite loop */
+//  for(;;)
+//  {
+//	  osDelay(500);  // Adjust the delay as needed for the desired blink rate
+//  }
+//  /* USER CODE END StartTask02 */
+//}
 
 /**
   * @brief  This function is executed in case of error occurrence.
