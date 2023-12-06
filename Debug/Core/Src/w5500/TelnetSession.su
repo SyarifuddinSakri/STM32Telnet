@@ -1,5 +1,7 @@
 ../Core/Src/w5500/TelnetSession.c:12:6:writeMessage	24	static
 ../Core/Src/w5500/TelnetSession.c:16:10:readMessage	24	static
-../Core/Src/w5500/TelnetSession.c:52:6:toggleLeds	16	static
-../Core/Src/w5500/TelnetSession.c:59:6:mainMenu	8	static
-../Core/Src/w5500/TelnetSession.c:63:6:startTelnet	8	static
+../Core/Src/w5500/TelnetSession.c:51:6:clearScreen	8	static
+../Core/Src/w5500/TelnetSession.c:54:6:invalidInput	8	static
+../Core/Src/w5500/TelnetSession.c:59:6:toggleLeds	16	static
+../Core/Src/w5500/TelnetSession.c:66:6:mainMenu	8	static
+../Core/Src/w5500/TelnetSession.c:80:6:startTelnet	8	static

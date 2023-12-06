@@ -34,14 +34,21 @@ void TaskFunction(void *pvParameters) {
     for (;;) {
         // Task code here
     	startTelnet();
-        vTaskDelay(pdMS_TO_TICKS(1));  // Delay for 1000 milliseconds
+        vTaskDelay(pdMS_TO_TICKS(10));  // Delay for 1000 milliseconds
     }
 }
 void Task2Function(void *pvParameters) {
     for (;;) {
         // Task 2 code here
-    	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);
-        vTaskDelay(pdMS_TO_TICKS(500));  // Delay for 500 milliseconds
+    	if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11)==0){
+    		  //set network address and network mode to default
+    		  ctlnetwork(CN_SET_NETINFO, (void*) &gWIZNETINFO2);
+    		  ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
+    		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, 1);
+    	}else{
+    		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, 0);
+    	}
+    	vTaskDelay(pdMS_TO_TICKS(3000));  // Delay for 1000 milliseconds
     }
 }
 int main(void)
@@ -56,9 +63,6 @@ int main(void)
 
   /* Start scheduler */
   W5500Init();
-  //set network address and network mode
-  ctlnetwork(CN_SET_NETINFO, (void*) &gWIZNETINFO2);
-  ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
 
   //put the task in queue
   xTaskCreate(TaskFunction, "Task1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);

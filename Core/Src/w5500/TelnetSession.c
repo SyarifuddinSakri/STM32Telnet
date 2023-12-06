@@ -48,6 +48,13 @@ uint8_t* readMessage() {
     // Return the buffer (or you might return something else based on your needs)
     return buffer;
 }
+void clearScreen(){
+	writeMessage("\033[2J");
+}
+void invalidInput(){
+	clearScreen();
+	writeMessage("\033[31mInvalid Input\r\n\033[37m");
+}
 
 void toggleLeds(uint8_t* clientMessage) {
     if (clientMessage[0] == 'l'&&clientMessage[1]=='1') {
@@ -57,7 +64,17 @@ void toggleLeds(uint8_t* clientMessage) {
     }
 }
 void mainMenu(){
-	writeMessage("Select your inputs\r\n1. ");
+	writeMessage("Select your inputs\r\n 1. Change Device Network Configuration\r\n 2. ");
+	switch ((char)readMessage()[0]){
+	case '1' :
+		clearScreen();
+		writeMessage(" 1. Change IP address\r\n 2. Change Netmask\r\n 3. Change Gateway\r\n");
+		toggleLeds(readMessage());
+	break;
+	default :
+		invalidInput();
+		mainMenu();
+	}
 }
 
 void startTelnet() {
@@ -67,8 +84,18 @@ void startTelnet() {
 
     while (1) {
         if (getSn_SR(telnetSocket) == SOCK_ESTABLISHED) {
+        	writeMessage("\033[36m");
+        	writeMessage("                    _____      \r\n");
+        	writeMessage("  _________  ____  / __(_)___ _\r\n");
+        	writeMessage(" / ___/ __ \\/ __ \\/ /_/ / __ `/\r\n");
+        	writeMessage("/ /__/ /_/ / / / / __/ / /_/ / \r\n");
+        	writeMessage("\\___/\\____/_/ /_/_/ /_/\\__, /  \r\n");
+        	writeMessage("                      /____/   \r\n");
+        	writeMessage("\033[37m");
             writeMessage("\033[32mTelnet Configuration Session\033[37m\r\n");
-            toggleLeds(readMessage());
+//          toggleLeds(readMessage()); //this is for test input of the LEDs only using command l1 and l2
+            mainMenu();
+            clearScreen();
         }else{
             // Current socket is not in the established state
             // Close the socket and reinitialize it to listen for new connections
