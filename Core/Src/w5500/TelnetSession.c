@@ -95,7 +95,6 @@ void startTelnet() {
             writeMessage("\033[32mTelnet Configuration Session\033[37m\r\n");
 //          toggleLeds(readMessage()); //this is for test input of the LEDs only using command l1 and l2
             mainMenu();
-            clearScreen();
         }else{
             // Current socket is not in the established state
             // Close the socket and reinitialize it to listen for new connections
