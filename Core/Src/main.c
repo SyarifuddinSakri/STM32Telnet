@@ -14,8 +14,8 @@ SPI_HandleTypeDef hspi1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
-uint8_t defaultIp[] = {192,168,100,132};
 uint8_t defaultMac[] = {0x00, 0x08, 0x0dc, 0xab, 0xcd, 0xed};
+uint8_t defaultIp[] = {192,168,100,132};
 uint8_t defaultMask[] = {255,255,255,0};
 uint8_t defaultGw[] = {192,168,100,1};
 
@@ -39,6 +39,7 @@ wiz_NetInfo gNetInfoDefault = {
 netmode_type gNetMode = {
 		NM_FORCEARP | NM_WAKEONLAN | NM_PPPOE | 128
 };
+//TaskHandle_t TaskHandle1;  // Handle for TaskFunction
 void TaskFunction(void *pvParameters) {
     for (;;) {
         // Task code here
@@ -47,22 +48,20 @@ void TaskFunction(void *pvParameters) {
     }
 }
 void Task2Function(void *pvParameters) {
-    BaseType_t networkConfigured = pdFALSE;  // Variable to track network configuration status
-
     for (;;) {
         // Task 2 code here
-        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11) == GPIO_PIN_SET && networkConfigured == pdFALSE) {
+        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11)==1) {
             // Set network address and network mode to default only if not already configured
+        	resetW5500();
+        	W5500Init();
             ctlnetwork(CN_SET_NETINFO, (void*) &gNetInfoDefault);
             ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
-            networkConfigured = pdTRUE;  // Set the flag to indicate network configuration is done
             HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
         } else if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11) == GPIO_PIN_RESET) {
-            networkConfigured = pdFALSE;  // Reset the flag when the pin goes low
             HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(3000));  // Delay for 3000 milliseconds
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Delay for 3000 milliseconds
     }
 }
 int main(void)
@@ -80,9 +79,9 @@ int main(void)
 //	ctlnetwork(CN_SET_NETINFO, (void*) &gNetInfoDefault);
 //	ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
 
-  //put the task in queue
-  xTaskCreate(TaskFunction, "Task1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
-  xTaskCreate(Task2Function, "Task2", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
+  // Create tasks
+    xTaskCreate(TaskFunction, "Task1", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    xTaskCreate(Task2Function, "Task2", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
 
   vTaskStartScheduler();
   /* We should never get here as control is now taken by the scheduler */
@@ -196,7 +195,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);

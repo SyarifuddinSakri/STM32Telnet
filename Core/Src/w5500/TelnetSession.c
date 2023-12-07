@@ -1,10 +1,10 @@
 #include "TelnetSession.h"
 #include "socket.h"
 #include "main.h"
+#include "w5500_spi.h"
 #include <string.h>
 
 #define MAX_BUFFER_SIZE 1024  // Adjust the size according to your needs
-
 uint8_t buffer[MAX_BUFFER_SIZE];  // Assuming buffer is declared globally or passed as an argument
 uint8_t telnetSocket = 0;
 uint16_t telnetPort = 23;
@@ -81,11 +81,20 @@ void mainMenu(){
 	case '1' :
 		clearScreen();
 		writeMessage(" 1. Change IP address\r\n 2. Change Netmask\r\n 3. Change Gateway\r\n");
-		toggleLeds(readMessage());
+		switch ((char)readMessage()[0]){
+		case '1':
+			writeMessage("Please enter new IP address Ex:");
+			break;
+		default :
+			invalidInput();
+			mainMenu();
+			break;
+		}
 	break;
 	default :
 		invalidInput();
 		mainMenu();
+		break;
 	}
 }
 

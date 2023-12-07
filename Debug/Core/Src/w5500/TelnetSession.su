@@ -4,4 +4,4 @@
 ../Core/Src/w5500/TelnetSession.c:66:6:invalidInput	8	static
 ../Core/Src/w5500/TelnetSession.c:71:6:toggleLeds	16	static
 ../Core/Src/w5500/TelnetSession.c:78:6:mainMenu	8	static
-../Core/Src/w5500/TelnetSession.c:92:6:startTelnet	8	static
+../Core/Src/w5500/TelnetSession.c:101:6:startTelnet	8	static
