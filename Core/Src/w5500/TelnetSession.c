@@ -14,37 +14,49 @@ void writeMessage(const char* message) {
 }
 
 uint8_t* readMessage() {
-
     int receivedSize = 0;
     int indexChar = 0;
     uint8_t receivedChar;
 
     while (1) {
-		receivedSize = recv(telnetSocket, &receivedChar, 1);
+        receivedSize = recv(telnetSocket, &receivedChar, 1);
 
-		// Check for errors or connection closure
-		if (receivedSize <= 0) {
-			// Handle error or connection closure
-			break;
-		}
-		// Check if the received character is a newline
-		if (receivedChar == '\n') {
-			// If yes, terminate the string and break out of the loop
-			buffer[indexChar] = '\0';
-			break;
-		}
-		// Otherwise, add the character to the buffer
-		buffer[indexChar] = receivedChar;
-		// Increment the receivedSize counter
-		indexChar++;
-		// Check if the buffer is full (adjust the size accordingly)
-		if (indexChar >= MAX_BUFFER_SIZE - 1) {
-			// Handle buffer full condition
-			break;
-		}
+        // Check for errors or connection closure
+        if (receivedSize <= 0) {
+            // Handle error or connection closure
+        	close(telnetSocket);//close the socket and restart the telnet session
+            startTelnet();
+            break;
+        }
+
+        // Check if the received character is a newline
+        if (receivedChar == '\n') {
+            // If yes, terminate the string and break out of the loop
+            buffer[indexChar] = '\0';
+            break;
+        }
+
+        // Otherwise, add the character to the buffer
+        buffer[indexChar] = receivedChar;
+        // Increment the receivedSize counter
+        indexChar++;
+
+        // Check if the buffer is full (adjust the size accordingly)
+        if (indexChar >= MAX_BUFFER_SIZE - 1) {
+            // Handle buffer full condition
+            break;
+        }
     }
+
     // Add null terminator to make it a valid C string
     buffer[indexChar] = '\0';
+
+    // Check if the socket is still in the established state
+    if (getSn_SR(telnetSocket) != SOCK_ESTABLISHED) {
+        // Optionally, close the socket here
+        close(telnetSocket);
+    }
+
     // Return the buffer (or you might return something else based on your needs)
     return buffer;
 }
@@ -64,7 +76,7 @@ void toggleLeds(uint8_t* clientMessage) {
     }
 }
 void mainMenu(){
-	writeMessage("Select your inputs\r\n 1. Change Device Network Configuration\r\n 2. ");
+	writeMessage("Select your inputs\r\n 1. Change Device Network Configuration\r\n");
 	switch ((char)readMessage()[0]){
 	case '1' :
 		clearScreen();
@@ -85,12 +97,15 @@ void startTelnet() {
     while (1) {
         if (getSn_SR(telnetSocket) == SOCK_ESTABLISHED) {
         	writeMessage("\033[36m");
-        	writeMessage("                    _____      \r\n");
-        	writeMessage("  _________  ____  / __(_)___ _\r\n");
-        	writeMessage(" / ___/ __ \\/ __ \\/ /_/ / __ `/\r\n");
-        	writeMessage("/ /__/ /_/ / / / / __/ / /_/ / \r\n");
-        	writeMessage("\\___/\\____/_/ /_/_/ /_/\\__, /  \r\n");
-        	writeMessage("                      /____/   \r\n");
+        	writeMessage("\r\n");
+        	writeMessage("                           .8888b oo          \r\n");
+        	writeMessage("                           88   \"             \r\n");
+        	writeMessage(".d8888b. .d8888b. 88d888b. 88aaa  dP .d8888b. \r\n");
+        	writeMessage("88'    `"" 88'  `88 88'  `88 88     88 88'  `88 \r\n");
+        	writeMessage("88.  ... 88.  .88 88    88 88     88 88.  .88 \r\n");
+        	writeMessage("`88888P' `88888P' dP    dP dP     dP `8888P88 \r\n");
+        	writeMessage("                                          .88 \r\n");
+        	writeMessage("                                      d8888P  \r\n");
         	writeMessage("\033[37m");
             writeMessage("\033[32mTelnet Configuration Session\033[37m\r\n");
 //          toggleLeds(readMessage()); //this is for test input of the LEDs only using command l1 and l2
