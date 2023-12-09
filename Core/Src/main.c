@@ -40,7 +40,7 @@ netmode_type gNetMode = {
 		NM_FORCEARP | NM_WAKEONLAN | NM_PPPOE | 128
 };
 //TaskHandle_t TaskHandle1;  // Handle for TaskFunction
-void TaskFunction(void *pvParameters) {
+void Task1Function(void *pvParameters) {
     for (;;) {
         // Task code here
     	startTelnet();
@@ -56,9 +56,9 @@ void Task2Function(void *pvParameters) {
         	W5500Init();
             ctlnetwork(CN_SET_NETINFO, (void*) &gNetInfoDefault);
             ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
         } else if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11) == GPIO_PIN_RESET) {
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
         }
 
         vTaskDelay(pdMS_TO_TICKS(1000));  // Delay for 3000 milliseconds
@@ -76,11 +76,11 @@ int main(void)
 
   /* Start scheduler */
   W5500Init();
-//	ctlnetwork(CN_SET_NETINFO, (void*) &gNetInfoDefault);
-//	ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
+	ctlnetwork(CN_SET_NETINFO, (void*) &gNetInfoDefault);
+	ctlnetwork(CN_SET_NETMODE, (void*) &gNetMode);
 
   // Create tasks
-    xTaskCreate(TaskFunction, "Task1", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    xTaskCreate(Task1Function, "Task1", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
     xTaskCreate(Task2Function, "Task2", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
 
   vTaskStartScheduler();
