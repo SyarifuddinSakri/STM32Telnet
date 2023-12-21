@@ -14,26 +14,18 @@ SPI_HandleTypeDef hspi1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
-uint8_t defaultMac[] = {0x00, 0x08, 0x0dc, 0xab, 0xcd, 0xed};
-uint8_t defaultIp[] = {192,168,100,132};
-uint8_t defaultMask[] = {255,255,255,0};
-uint8_t defaultGw[] = {192,168,100,1};
 
-//uint8_t setIp[];
-//uint8_t setMac[];
-//uint8_t setMask[];
-//uint8_t setGw[];
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 void StartDefaultTask(void const * argument);
-void StartTask02(void const * argument);
+//void StartTask02(void const * argument);
 
 wiz_NetInfo gNetInfoDefault = {
-		{0x00, 0x08, 0xdc, 0xab, 0xcd, 0xed},//mac address
-		{192,168,100,132},//ip address
-		{255,255,255,0},//subnet mask
-		{192,168,100,1},//gateway
+		.mac = {0x00, 0x08, 0xdc, 0xab, 0xcd, 0xed},//mac address
+		.ip = {192,168,100,132},//ip address
+		.sn = {255,255,255,0},//subnet mask
+		.gw = {192,168,100,1},//gateway
 		.dhcp = NETINFO_STATIC
 };
 netmode_type gNetMode = {
